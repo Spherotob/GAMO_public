@@ -3,7 +3,7 @@ Genetic Algorithm for Metabolic Optimization
 
 AUTHOR<br/>
 Tobias Alter<br/>
-Institute of Applied Microbiology, RWTH Aachen University
+Institute of Applied Microbiology, RWTH Aachen University<br/>
 tobias.alter@rwth-aachen.de
 
 INSTALLATION<br/>
