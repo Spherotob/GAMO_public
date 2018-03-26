@@ -1,5 +1,7 @@
 # GAMO_public
-Genetic Algorithm for Metabolic Optimization
+Genetic Algorithm for Metabolic Optimization<br/>
+<a href="https://zenodo.org/badge/latestdoi/126826403"><img src="https://zenodo.org/badge/126826403.svg" alt="DOI"></a>
+
 
 AUTHOR<br/>
 Tobias Alter<br/>
