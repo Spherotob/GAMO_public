@@ -9,6 +9,7 @@ opt             = [];
 
 %%
 % set path for additional files
+addpath('GAMO Files')
 addpath('Data Files')            % flux data for reference flux distribution
 addpath('Additional Files')  
 
