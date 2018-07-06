@@ -17,7 +17,7 @@ function [gurProb,gurProb_1norm,gurParams] = initStructLP(model)
 
 %% setup gurobi LP structure
 % lefthand side of constraints
-gurProb.A       = model.S;
+gurProb.A       = sparse(model.S);
 % righthand side of linear constraints                
 gurProb.rhs     = zeros(nMets,1);
 % sense of constraints
