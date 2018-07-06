@@ -38,7 +38,7 @@ while redo
     gurProb         = [];
     gurParams       = [];
     [nMets,nRxns]   = size(model_u.S);
-    gurProb.A       = model_u.S;
+    gurProb.A       = sparse(model_u.S);
     gurProb.rhs     = zeros(nMets,1);
     gurProb.sense(1:nMets)  = '=';
     gurProb.modelsense  = 'max';
