@@ -723,8 +723,12 @@ numRxns_orig    = size(model.comprMapMat,1);
 parfor i=1:numBS
     [~,~,popFD,popObjVal_out] = evalFitness(res_best(i).pop,[],model,model_i,1,targets,fitFun_type,opt_fitFun);
     % decompress results
-    fluxes{i}                       = zeros(numRxns_orig,1);
-    fluxes{i}(model.comprMapVec)    = popFD{1}; 
+    if ~isempty(popFD{1})
+        fluxes{i}                       = zeros(numRxns_orig,1);
+        fluxes{i}(model.comprMapVec)    = popFD{1}; 
+    else
+        fluxes{i}   = [];
+    end
     popObjVal{i}                    = popObjVal_out{1};
 end
 i   = [];
@@ -745,8 +749,12 @@ popObjVal   = cell(numIS,i);
 parfor i=1:numIS
     [~,~,popFD,popObjVal_out] = evalFitness(pop_sort(i,:),[],model,model_i,1,targets,fitFun_type,opt_fitFun);
     % decompress results
-    fluxes{i}                       = zeros(numRxns_orig,1);
-    fluxes{i}(model.comprMapVec)    = popFD{1};
+    if ~isempty(popFD{1})
+        fluxes{i}                       = zeros(numRxns_orig,1);
+        fluxes{i}(model.comprMapVec)    = popFD{1}; 
+    else
+        fluxes{i}   = [];
+    end
     popObjVal{i}                    = popObjVal_out{1};
 end
 for i=1:numIS

@@ -318,7 +318,7 @@ switch fitFun_type
         % objectives as normalization factors to be able to compare
         % different objectives in a multi-objective approach
         
-        if sum(isObj)>1
+        if sum(isObj)>1 || opt_fitFun.leadObj~=1
             % more 
             % maximal growth rate
             gurProb     = opt_fitFun.gurProb;

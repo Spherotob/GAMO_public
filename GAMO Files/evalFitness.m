@@ -1,4 +1,4 @@
-function [popFit,popFitObj,popFD,popObjVal,chr_map_obj] = evalFitness(pop,pop_Tbin,model,model_i,Np,targets,fitFun_type,opt_fitFun)
+function [popFit,popFitObj,popFD,popObjVal] = evalFitness(pop,pop_Tbin,model,model_i,Np,targets,fitFun_type,opt_fitFun)
 % calculate fitness of the population's chromosomes. 
 
 %% INPUT
