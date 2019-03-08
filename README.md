@@ -14,6 +14,7 @@ Copy or clone files and folders to your hard drive. Matlab 2016 (or higher) (htt
 RELATED PUBLICATION<br/>
 Genetic Optimization Algorithm for Metabolic Engineering Revisited<br/>
 Alter, T. B.; Blank, L. M.; Ebert, B. E.<br/>
-DOI: 10.20944/preprints201803.0220.v1
+Metabolites 2018, 8(2), 33<br/>
+DOI: 10.3390/metabo8020033
 
 The content of this repository is licensed under a MIT License.
