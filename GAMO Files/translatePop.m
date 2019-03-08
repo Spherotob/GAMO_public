@@ -25,6 +25,11 @@ function [KO,KD,Gene_KO,Gene_KD,Ins] = translatePop(model,model_c,indv,optFocus,
 indv_del = indv(1:K);     % deletion targets of individual
 indv_ins = indv((K+1):(K_hri+K));   % insertion targets
 
+% % check if compressed model contains transformation vector and matrices
+% if ~isfield(model_c,'comprMapVec')
+%     model_c.comprMapVec     = [1:length(model_c.rxns)]';
+% end
+
 
 Gene_KO     = [];
 Gene_KD     = [];

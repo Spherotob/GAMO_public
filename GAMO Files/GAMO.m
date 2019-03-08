@@ -293,6 +293,13 @@ else
 end
 
 
+% non target reactions
+if isfield(opt,'nonTarget')
+    nonTarget     = opt.nonTarget;
+else
+    nonTarget     = [];
+end
+
 
 % technical
 if isfield(opt,'threads')
@@ -399,19 +406,29 @@ if refFlux_flag
     model.fd_ref   = refFD;
 end
 
-           
+%% translate non target reaction identifiers to positions
+if ~isempty(nonTarget)
+    nonTargetNum    = zeros(length(nonTarget),1);
+    for i=1:length(nonTarget)
+        nonTargetNum(i)     = find(strcmp(model.rxns,nonTarget{i}));
+    end
+    % swap identifiers witch number
+    nonTarget   = nonTargetNum;
+else
+    nonTarget   = [];
+end
 
 
 %% compress model
+% save model
+model_save          = model;
 if ~isfield(prob,'model_compress') && compress
         
-        % save uncompressed model
-        model_save              = model;  
+        % save uncompressed model options 
         opt_fitFun_save         = opt_fitFun;
         prob.opt_fitFun_save    = opt_fitFun_save;
         model                   = compressModel(model);     % compress model
         
-
         % translate reference flux distribution, excluded
         % reactions, heterologous insertion reactions
         model.fd_ref                = model.comprMapMat'*model.fd_ref;
@@ -420,6 +437,7 @@ if ~isfield(prob,'model_compress') && compress
         opt_fitFun.excl_rxns        = find(model.comprMapMat'*excl_rxns_help);
         opt_rMMA.MiMBl.excl_rxns    = opt_fitFun.excl_rxns;
         model.hetRxnNum             = find(ismember(model.comprMapVec,model.hetRxnNum));
+        nonTarget                   = find(ismember(model.comprMapVec,nonTarget));
         
         model.bmRxnNum      = find(model.comprMapVec==model_save.bmRxnNum);
         model.subsRxnNum    = find(model.comprMapVec==model_save.subsRxnNum);
@@ -436,39 +454,36 @@ if ~isfield(prob,'model_compress') && compress
                 
 elseif compress
     % load compressed model
-    model_save          = model;
     model               = prob.model_compress;
     model_i             = prob.model_i_compress;
     opt_fitFun_save     = prob.opt_fitFun_save;
     opt_rMMA            = prob.opt_rMMA;
     opt_fitFun          = prob.opt_fitFun;
+else
+    % no compression, add dummy transformation vectors and matrices
+    model.comprMapVec   = [1:length(model.rxns)]';
+    model.comprMapMat   = speye(length(model.rxns));
 end
 
 
     
 %% reduce target space
-if ~isfield(model,'nonTarget')
-    nonTarget   = [];
-    if redFlag
-        c = fix(clock);
-        disp([num2str(c(4:end)),': Basic reduction of target space ...'])
+if redFlag
+    c = fix(clock);
+    disp([num2str(c(4:end)),': Basic reduction of target space ...'])
 
-        % exclude by reaction identifier
-        [nonTarget]         = redTargetSpace(model, [], modelType);
-        
-        % exclude reaction that cannot carry any flux
-        % determine blocked reactions
-        [minFlux,maxFlux,~,~] = manualFVA(model);    % flux variability analysis
-        blckd_rxns      = find((minFlux==0) & (maxFlux==0));
-        % add to non targets
-        nonTarget       = unique([nonTarget;blckd_rxns]);
-       
+    % exclude by reaction identifier
+    [nonTargetRed]         = redTargetSpace(model, [], modelType);
 
-    end
-    model.nonTarget     = nonTarget;
-else
-    nonTarget   = model.nonTarget;
+    % exclude reaction that cannot carry any flux
+    % determine blocked reactions
+    [minFlux,maxFlux,~,~] = manualFVA(model);    % flux variability analysis
+    blckd_rxns      = find((minFlux==0) & (maxFlux==0));
+    % add to non targets
+    nonTargetRed    = unique([nonTargetRed;blckd_rxns]);       
 end
+nonTarget   = [nonTarget;nonTargetRed];
+
 
 
 %% Conduct rMMA and specify targets
@@ -719,7 +734,7 @@ if numBS>50
 end
 fluxes      = cell(numBS,1);
 popObjVal   = cell(numBS,i);
-numRxns_orig    = size(model.comprMapMat,1);
+numRxns_orig    = size(model_save.rxns,1);
 parfor i=1:numBS
     [~,~,popFD,popObjVal_out] = evalFitness(res_best(i).pop,[],model,model_i,1,targets,fitFun_type,opt_fitFun);
     % decompress results

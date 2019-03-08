@@ -1,5 +1,5 @@
 %% Genetic Algorithm for Metabolic Optimization (GAMO)
-% Example for GAMO employing the E. coli iAF1260 core model
+% Example for GAMO employing the E. coli iAF1260 core and GEM iJO1366 model
 % (http://bigg.ucsd.edu/)
 
 clearvars -except prob 
@@ -16,7 +16,9 @@ addpath('Additional Files')
 
 %% load model
 % iAF1260 core model
-load('iAF1260Core.mat')
+% load('iAF1260Core.mat')
+load('iJO1366.mat')
+model.csense    = model.csense';
 
 model           = changeRxnBounds(model,'EX_glc__D_e',-13.34,'l');   % activate glucose uptake
 model           = changeRxnBounds(model,'EX_o2_e',-20,'l');   % activate oxygen uptake
@@ -24,7 +26,8 @@ model           = changeRxnBounds(model,'EX_o2_e',-20,'l');   % activate oxygen 
 % define target (exchange) reaction, biomass formation reaction and
 % substrate uptake reaction
 model.targetRxn     = 'EX_succ_e';
-model.bmRxn         = 'BIOMASS_Ecoli_core_w_GAM';
+% model.bmRxn         = 'BIOMASS_Ecoli_core_w_GAM';   % E. coli core model
+model.bmRxn         = 'BIOMASS_Ec_iJO1366_WT_53p95M';   % E. coli GEM iJO1366
 model.subsRxn       = 'EX_glc__D_e';
 
 % Reference flux distribution (Ishii 2007, growth on glucose, mu=0.7 1/h)
@@ -52,8 +55,8 @@ opt.memPop          = 1;    % (1): Memorize fitness of each generated chromosome
                             % (0): only final population fitness is passed
                             
 opt.popSize         = 20;   % Population size/Number of chromosomes per generation     
-opt.maxGen          = 5;   % Numberof Gene-Drift-Events
-opt.genSize         = 60;   % Number of generations between two Gene-Flow-Events 
+opt.maxGen          = 2;   % Numberof Gene-Drift-Events
+opt.genSize         = 2;   % Number of generations between two Gene-Flow-Events 
 opt.slctRate        = 0.25;  % Selection rate
 opt.mutRate         = 0.05;  % Mutation rate (0-1) related to the whole population and its number of bits
 opt.elite           = 1;    % Number of elite chromosomes which are not to be mutated
@@ -88,9 +91,13 @@ excl_rxns   = [excl_rxns; find(not(cellfun('isempty',(strfind(model.rxnNames,'sp
 opt_fitFun.excl_rxns    = unique(excl_rxns);
 
 
+%% exclude reactions from target space
+opt.nonTarget   = {};   % manually specify reaction identifiers of reactions not to be targeted
+
+
 % ADDITIONAL FEATURES
 %% heterologous reaction insertions
-opt.numInsertions   = 1;    % Maximal number of heterologous reaction insertions
+opt.numInsertions   = 0;    % Maximal number of heterologous reaction insertions
 if opt.numInsertions > 0
     % if heterologous insertions are considered include novel reactions in
     % the model. Heterologous reactions were derived from MetaNetX databank
@@ -104,7 +111,7 @@ if opt.numInsertions > 0
 end
 
 %% Minimization of intervention set sizes
-opt_fitFun.minInt          = 1;     % (1): Minimize intervention set size during optmization
+opt_fitFun.minInt          = 0;     % (1): Minimize intervention set size during optmization
                                     % (0): Disable intervention set size minimization
 opt_fitFun.FIRF            = 0.1;   % Fitness-Intervention Relation Factor
 
