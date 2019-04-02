@@ -89,7 +89,10 @@ genNum      = 1;
 genFlag     = 1;
 while (genNum<=maxGen) && genFlag
     genStart    = tic;  % start generation timer
-      
+    % display
+    c = fix(clock);
+    fprintf([num2str(c(4:end)),': Gendrift ',num2str(genNum),' of ',num2str(maxGen)]);
+    
     % setup population arrays
 %     pop_temp        = zeros(size(pop));
 %     pop_Tbin_temp   = zeros(size(pop_Tbin));
@@ -290,8 +293,7 @@ while (genNum<=maxGen) && genFlag
 %     timing.fit{genNum}          = fit_timing;
     
     % display
-    c = fix(clock);
-    disp([num2str(c(4:end)),': Gendrift ',num2str(genNum),' of ',num2str(maxGen),' completed'])
+    fprintf([' completed (best fitness: ',num2str(max(popFit)),')\n']);
     
     genNum  = genNum+1;
     
