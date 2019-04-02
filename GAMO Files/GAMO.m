@@ -330,8 +330,8 @@ end
 addpath(opt_ga.AddFilesDir)
 
 % Rescue Folder for saving files
-if exist('Rescue','dir')~=7
-    mkdir('Rescue')
+if exist([homeDir,slash,'Rescue'],'dir')~=7
+    mkdir([homeDir,slash,'Rescue'])
 end
 
 
