@@ -42,7 +42,18 @@ uptake  = sol.x(model.subsRxnNum);
 if mu<=0 || uptake==0
     fitVal  = 0;
 else
-    fitVal  = (sol.x(model.targetRxnNum)*mu)/-uptake; 
+    % choose fitness function paramter
+    switch opt_fitFun.fitParam
+        case 0
+            % Biomass-product coupled yield
+            fitVal  = (sol.x(model.targetRxnNum)*mu)/-uptake; 
+        case 1
+            % yield
+            fitVal  = sol.x(model.targetRxnNum)/-uptake; 
+        case 2
+            % production rate
+            fitVal  = sol.x(model.targetRxnNum); 
+    end
 end
 
 end

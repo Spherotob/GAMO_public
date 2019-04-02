@@ -18,9 +18,19 @@ if isempty(sol.x)
     fitVal      = -1;
     fluxDist    = -1;
 else
-    % calculate fitness
-    fitVal     = (sol.x(model.bmRxnNum)*sol.x(model.targetRxnNum)...
-                            /-sol.x(model.subsRxnNum))/opt_fitFun.maxMiMBl;
+    % calculate fitness and choose fitness parameter
+    switch opt_fitFun.fitParam
+        case 0
+            % biomass-product coupled yield
+            fitVal     = (sol.x(model.bmRxnNum)*sol.x(model.targetRxnNum)...
+                                    /-sol.x(model.subsRxnNum))/opt_fitFun.maxMiMBl;
+        case 1
+            % yield
+            fitVal     = (sol.x(model.targetRxnNum)/-sol.x(model.subsRxnNum))/opt_fitFun.maxMiMBl;
+        case 2
+            % production rate
+            fitVal     = sol.x(model.targetRxnNum)/opt_fitFun.maxMiMBl;                                
+    end
     fluxDist    = sol.x;
 end
 

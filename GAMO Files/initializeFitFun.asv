@@ -359,11 +359,8 @@ switch fitFun_type
                     
                 case 1
                     % yield
-                    opt_fitFun.maxMiMBl     = opt_fitFun.theoProd/-sol.x(model.subsRxnNum);
+                    opt_fitFun.maxMiMBl     = 
                     
-                case 2
-                    % production rate
-                    opt_fitFun.maxMiMBl     = opt_fitFun.theoProd;
             end
         else
             % only one objective function, dismiss normalization of

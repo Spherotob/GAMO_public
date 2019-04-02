@@ -16,8 +16,8 @@ addpath('Additional Files')
 
 %% load model
 % iAF1260 core model
-% load('iAF1260Core.mat')
-load('iJO1366.mat')
+load('iAF1260Core.mat')
+% load('iJO1366.mat')
 model.csense    = model.csense';
 
 model           = changeRxnBounds(model,'EX_glc__D_e',-13.34,'l');   % activate glucose uptake
@@ -26,8 +26,8 @@ model           = changeRxnBounds(model,'EX_o2_e',-20,'l');   % activate oxygen 
 % define target (exchange) reaction, biomass formation reaction and
 % substrate uptake reaction
 model.targetRxn     = 'EX_succ_e';
-% model.bmRxn         = 'BIOMASS_Ecoli_core_w_GAM';   % E. coli core model
-model.bmRxn         = 'BIOMASS_Ec_iJO1366_WT_53p95M';   % E. coli GEM iJO1366
+model.bmRxn         = 'BIOMASS_Ecoli_core_w_GAM';   % E. coli core model
+% model.bmRxn         = 'BIOMASS_Ec_iJO1366_WT_53p95M';   % E. coli GEM iJO1366
 model.subsRxn       = 'EX_glc__D_e';
 
 % Reference flux distribution (Ishii 2007, growth on glucose, mu=0.7 1/h)
@@ -70,7 +70,7 @@ opt.slctPressure    = 2;    % Selection Pressure for targets at population initi
 
 
 %% fitness function options
-opt.fitFun                 = 0;    % Choose fitness function (0): MiMBL; (1): Multiobjective
+opt.fitFun                 = 1;    % Choose fitness function (0): MiMBL; (1): Multiobjective
 % (G):  gcOpt (4)
 % (R):  RobustKnock (3)
 % (O):  Optknock (2)   
@@ -80,6 +80,11 @@ opt_fitFun.isObj           = 'OG';          % choose objectives to be evaluated 
 opt_fitFun.leadObj         = 'M';           % Choose one master objective, if this objective value 
                                             % is zero the fitness of the individual is zero
                                             % disregarding the other objectives
+                                            
+% For MiMBL only! Choose fitness parameter to be calculated from flux distribution                                           
+opt_fitFun.fitParam        = 0;             % 0: Biomass-Product coupled yield (BPCY) [mol/mol/h]
+                                            % 1: Yield [mol/mol]
+                                            % 2: Production rate [mmol/g/h]
                                             
 opt_fitFun.minGrowth       = 0.1;   % Assign minimal allowable growth rate for LP objectives (OptKnock etc)
 
