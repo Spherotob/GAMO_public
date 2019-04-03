@@ -39,7 +39,7 @@ fluxDist    = sol.x;
 % calculate productivity [mmol] (from timepoint 0 to 1) using a simple growth model
 mu      = sol.x(model.bmRxnNum);
 uptake  = sol.x(model.subsRxnNum);
-if mu<=0 || uptake==0
+if mu<opt_fitFun.minGrowth || uptake==0
     fitVal  = 0;
 else
     % choose fitness function paramter
