@@ -605,7 +605,7 @@ save('Rescue\GAMO_PreGA_SaveFile')
 
 %% Genetic algorithm
 c = fix(clock);
-disp([num2str(c(4:end)),': Execute genetic algorithm ...'])
+disp([num2str(c(4:end)),': Execute genetic algorithm (best initial fitness: ',num2str(max(popFit)),') ...'])
 
 
 [finalPop,chr_map,totalData] = geneticAlgorithm(model,model_i,targets,pop,pop_Tbin,pop_bin,popFit,enc,...
