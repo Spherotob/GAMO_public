@@ -479,10 +479,12 @@ if redFlag
 
     % exclude reaction that cannot carry any flux
     % determine blocked reactions
-    [minFlux,maxFlux,~,~] = manualFVA(model);    % flux variability analysis
-    blckd_rxns      = find((minFlux==0) & (maxFlux==0));
-    % add to non targets
-    nonTargetRed    = unique([nonTargetRed;blckd_rxns]);   
+    targetRxns  = [1:length(model.rxns)]';
+    targetRxns(nonTargetRed)    = [];
+    [minFlux,maxFlux,~,~] = manualFVA(model,model.rxns(targetRxns));    % flux variability analysis
+    blckd_rxns      = (minFlux==0) & (maxFlux==0);
+    % add to non targets with the correct indices
+    nonTargetRed    = unique([nonTargetRed;targetRxns(blckd_rxns)]);   
 else
     nonTargetRed    = [];
 end

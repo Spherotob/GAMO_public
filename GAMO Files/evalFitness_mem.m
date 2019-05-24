@@ -80,7 +80,8 @@ for i=1:Np
             case 2
                 % protein allocation model optimization
                 [act_targets,act_targets_i,act_targetBounds,act_targetBounds_i] = evalTargets(pop(i,:),targets);
-                
+                % optimize model
+                [popFit(i),popFD{i}]     = fitFun_PAM(model,act_targets,act_targetBounds,opt_fitFun);
             otherwise
                 error('Unknown fitness function')
         end 

@@ -44,15 +44,15 @@ opt.compress    = 0;    % model compression (0): No; (1): active
 
 %% General (crucial) optimization options
 opt.numInt          = 3;        % Maximal number of interventions
-opt.optFocus        = 'rxns';   % 'rxns': reaction deletions; 'gene': gene deletions
+opt.optFocus        = 'gene';   % 'rxns': reaction deletions; 'gene': gene deletions
 
 %% genetic algorithm parameter (crucial)
 opt.memPop          = 1;    % (1): Memorize fitness of each generated chromosome
                             % (0): only final population fitness is passed
                             
 opt.popSize         = 20;   % Population size/Number of chromosomes per generation     
-opt.maxGen          = 2;   % Numberof Gene-Drift-Events
-opt.genSize         = 2;   % Number of generations between two Gene-Flow-Events 
+opt.maxGen          = 5;   % Numberof Gene-Drift-Events
+opt.genSize         = 10;   % Number of generations between two Gene-Flow-Events 
 opt.slctRate        = 0.25;  % Selection rate
 opt.mutRate         = 0.05;  % Mutation rate (0-1) related to the whole population and its number of bits
 opt.elite           = 1;    % Number of elite chromosomes which are not to be mutated
