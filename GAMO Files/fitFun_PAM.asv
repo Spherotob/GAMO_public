@@ -1,0 +1,32 @@
+function [fitVal,fluxDist] = fitFun_PAM(model,targets,targetBounds,opt_fitFun)
+% fitness function employing protein allocation models. Flux distributions
+% are calculated by simply maximizing the biomass formation reaction.
+
+% INPUT
+% model:        Reversible metabolic Model in COBRA format 
+% targets:      Reaction numbers of targets for the respective intervention
+%               strategy.
+% targetBounds: Lower and upper bounds for specific targets
+% opt_fitFun:   fitness function options (Here MiMBL options)
+
+% OUTPUT
+
+%% General Parameter
+
+
+%% apply targets
+% allocate mutant model
+model_m     = model;
+% lower bounds
+model_m.lb(targets)      = targetBounds(:,1);
+% upper bounds
+model_m.ub(targets)      = targetBounds(:,2);
+
+
+%% optimize model (determine mutant substrate uptake)
+[fluxDist,~,~] = determineMutantPhenotype(model,model_m,subsGrid,initGridNum,...
+                        maxOEELimit,wildtypeGridSolutions)
+
+
+
+end

@@ -70,7 +70,7 @@ opt.slctPressure    = 2;    % Selection Pressure for targets at population initi
 
 
 %% fitness function options
-opt.fitFun                 = 1;    % Choose fitness function (0): MiMBL; (1): Multiobjective
+opt.fitFun                 = 1;    % Choose fitness function (0): MiMBL; (1): Multiobjective; (2): Protein allocation model optimization
 % (G):  gcOpt (4)
 % (R):  RobustKnock (3)
 % (O):  Optknock (2)   

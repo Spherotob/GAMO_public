@@ -11,14 +11,25 @@ switch modelType
     case 0  % Bigg identifiers (like iAF1260)
         
         % Exclude certain types of reactions, namly
-        %   spontaneous, transport, diffusion, exchange
+        %   spontaneous, transport, diffusion, exchange, enzyme
+        %   concentrations
         noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'exchange')))))];
         noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'diffusion')))))];
         noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'transport')))))];  
-        noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'spontaneous')))))]; 
+        noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'spontaneous')))))];
+        noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxns,'EAR_')))))]; 
+        noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxns,'EICR')))))]; 
+        noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxns,'Ribosome_usage')))))]; 
         
         % Exclude reactions belonging to a certain subsystem
+
         if isfield(model,'subSystems')
+            % if necessary convert cell to character vector
+            for i=1:length(model.subSystems)
+                if iscell(model.subSystems{i})
+                    model.subSystems{i}     = model.subSystems{i}{1};
+                end                
+            end
             noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Cell Envelope Biosynthesis')))))];
             noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Transport')))))];
             noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'transport')))))];

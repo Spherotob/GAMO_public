@@ -54,7 +54,12 @@ for i=1:Np
             % multiobjective fitness function
             [popFit(i),popFD{i},popObjVal{i}]    = fitFun_multiObj(model,model_i,act_targets_i,act_targets,...
                                                act_targetBounds_i,act_targetBounds,opt_fitFun);  
-
+                                           
+        case 2
+            % protein allocation model optimization
+            [act_targets,~,act_targetBounds,~] = evalTargets(pop(i,:),targets);
+            % optimize model
+            [popFit(i),popFD{i}]     = fitFun_PAM(model,act_targets,act_targetBounds,opt_fitFun);
         otherwise
             error('Unknown fitness function')
     end 

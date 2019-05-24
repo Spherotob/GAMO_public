@@ -40,157 +40,178 @@ opt_fitFun.optFocus     = strcmp(optFocus,'rxns');
 
 
 %% create irreversible model (if necessary for fitness function)
-% MiMBl and simple growth model
-%         [model_i,refFluxDist_i] = conv2Irr(model,model.refFluxDist);
-model_i                 = rev2irr(model);
-model_i.fd_ref          = fd_rev2irr(model,model_i,model.fd_ref);
-model_i.subsRxnNum      = find(ismember(model_i.rxns,model_i.subsRxn));
-model_i.hetRxnNum       = model_i.rev2irrev(targets.rxnNum_hri);
-% adapt targets to irreversible model
-% distinguish between genes and reaction targets
-if opt_fitFun.optFocus
-    % reaction targets
-    targets.rxnNum_i        = model_i.rev2irrev(targets.rxnNum);
-    bound_i                 = cell(Nt_tot,2);
-    for i=1:length(targets.rxnNum)
-        if length(targets.rxnNum_i{i}) > 1
-            % reversible reaction
-            if ~any(targets.bound(i,:))
-                % reaction deletion
-                bound_i{i,1}     = targets.bound(i,:);
-                bound_i{i,2}     = targets.bound(i,:);
-            elseif all(targets.bound(i,:)>=0)
-                % knockdown or irreversible insertion target, positive flux values
-                bound_i{i,1}     = [targets.bound(i,1),0];
-                bound_i{i,2}     = [targets.bound(i,2),0];
-            elseif all(targets.bound(i,:)<=0) 
-                % knockdown or irreversible insertion target, negative flux values
-                bound_i{i,1}     = [0,-targets.bound(i,2)];
-                bound_i{i,2}     = [0,-targets.bound(i,1)];
-            elseif (targets.bound(i,1)* targets.bound(i,2))<0
-                % reversible insertion target
-                bound_i{i,1}     = [0,0];
-                bound_i{i,2}     = [targets.bound(i,2),-targets.bound(i,1)];
-            end
-        else
-            % irreversible reaction
-            bound_i{i,1}     = targets.bound(i,1);
-            bound_i{i,2}     = targets.bound(i,2);
-        end
-    end
-    targets.bound_i     = bound_i;
-%     targets.rxnNum      = num2cell(targets.rxnNum);
-else
-  
-    % gene targets
-    B_t     = model_i.B(:,targets.rxnNum);  % mapping matrix for reaction targets only
-    
-    % determine direction of reference flux (mapIrr2Rev)
-    B_t_bound   = B_t;
-    for i=1:Nt_tot
-        back_rxn    = model_i.mapIrr2Rev(targets.rxnNum(i),:)==-1;  % position of backwards flux
-        forw_rxn    = model_i.mapIrr2Rev(targets.rxnNum(i),:)==1;  % position of forward flux
-        if any(back_rxn) 
-            % reversible reaction
-            if model.fd_ref(targets.rxnNum(i))<0
-                B_t_bound(back_rxn,i)     = 1;
-                B_t_bound(forw_rxn,i)     = 0;
-            else
-                B_t_bound(back_rxn,i)     = 0;
-                B_t_bound(forw_rxn,i)     = 1;
-            end
-        else
-            % irreversible reaction
-        end
-    end
-    
-    % determine irreversible bounds for insertion targets
-    rxnNum_i                = model_i.rev2irrev(targets.rxnNum);
-    bound_i                 = cell(Nt_tot,2);
-    for i=1:Nt_tot
-        rxnPos              = i;
-        if length(rxnNum_i{rxnPos}) > 1
-            % reversible reaction
-            if ~any(targets.bound(rxnPos,:))
-                % reaction deletion
-                bound_i{i,1}     = targets.bound(rxnPos,:);
-                bound_i{i,2}     = targets.bound(rxnPos,:);
-            elseif all(targets.bound(rxnPos,:)>=0)
-                % knockdown or irreversible insertion target, positive flux values
-                bound_i{i,1}     = [targets.bound(rxnPos,1),0];
-                bound_i{i,2}     = [targets.bound(rxnPos,2),0];
-            elseif all(targets.bound(rxnPos,:)<=0) 
-                % knockdown or irreversible insertion target, negative flux values
-                bound_i{i,1}     = [0,-targets.bound(rxnPos,2)];
-                bound_i{i,2}     = [0,-targets.bound(rxnPos,1)];
-            elseif (targets.bound(rxnPos,1)* targets.bound(rxnPos,2))<0
-                % reversible insertion target
-                bound_i{i,1}     = [0,0];
-                bound_i{i,2}     = [targets.bound(rxnPos,2),-targets.bound(rxnPos,1)];
-            end
-        else
-            % irreversible reaction
-            bound_i{i,1}     = targets.bound(rxnPos,1);
-            bound_i{i,2}     = targets.bound(rxnPos,2);
-        end
-    end
-    targets.bound_i     = bound_i;
-    targets.rxnNum_i    = rxnNum_i;
-    
-    
-    targets.B_t         = B_t;
-    targets.B_t_bound   = B_t_bound;
-    targets.rev2irrev   = model_i.rev2irrev;
-    
 
-%     % create dependence matrix of gene bounds and irreversible reactions
-%     % upper bound
-%     nR_i    = length(model_i.rxns);     % number of irreversible reactions
-%     
-% 
-%     targets.rxnNum_i    = cell(Nt_tot,1);
-%     bound_i             = cell(Nt_tot,2);
-%     for i=1:Nt_tot
-%         rxnNum_i    = model_i.rev2irrev(targets.rxnNum(i));
-%         numRxns     = length(rxnNum_i);
-%         for j=1:numRxns
-%             bound   = [targets.bound{i,1}(j),targets.bound{i,2}(j)];    % load bound of the specific target reaction
-%             if length(rxnNum_i{j}) > 1
-%                 % reversible reaction
-%                 if ~any(bound)
-%                     bound_i{i,1}        = [bound_i{i,1},bound];
-%                     bound_i{i,2}        = [bound_i{i,2},bound];
-%                 elseif all(bound>=0)
-%                     % knockdown, positive flux
-%                     bound_i{i,1}        = [bound_i{i,1},bound(1),0];
-%                     bound_i{i,2}        = [bound_i{i,2},bound(2),0];
-%                 elseif all(bound<=0)
-%                     % knockdown, negative flux
-%                     bound_i{i,1}        = [bound_i{i,1},0,-bound(1)];
-%                     bound_i{i,2}        = [bound_i{i,2},0,-bound(2)];
-%                 else
-%                     warning('Target bounds suggest a reversible reaction')
-%                 end
-%             else
-%                 % irreversible reaction
-%                 bound_i{i,1}        = [bound_i{i,1},bound(1)];
-%                 bound_i{i,2}        = [bound_i{i,2},bound(2)];
-%             end
-%         end
-%         targets.rxnNum_i{i}     = [rxnNum_i{:}];
-%     end 
-%     targets.bound_i     = bound_i;
+if fitFun_type<2
+    % MiMBl and simple growth model
+    %         [model_i,refFluxDist_i] = conv2Irr(model,model.refFluxDist);
+    model_i                 = rev2irr(model);
+    model_i.fd_ref          = fd_rev2irr(model,model_i,model.fd_ref);
+    model_i.subsRxnNum      = find(ismember(model_i.rxns,model_i.subsRxn));
+    model_i.hetRxnNum       = model_i.rev2irrev(targets.rxnNum_hri);
+    % adapt targets to irreversible model
+    % distinguish between genes and reaction targets
+    if opt_fitFun.optFocus
+        % reaction targets
+        targets.rxnNum_i        = model_i.rev2irrev(targets.rxnNum);
+        bound_i                 = cell(Nt_tot,2);
+        for i=1:length(targets.rxnNum)
+            if length(targets.rxnNum_i{i}) > 1
+                % reversible reaction
+                if ~any(targets.bound(i,:))
+                    % reaction deletion
+                    bound_i{i,1}     = targets.bound(i,:);
+                    bound_i{i,2}     = targets.bound(i,:);
+                elseif all(targets.bound(i,:)>=0)
+                    % knockdown or irreversible insertion target, positive flux values
+                    bound_i{i,1}     = [targets.bound(i,1),0];
+                    bound_i{i,2}     = [targets.bound(i,2),0];
+                elseif all(targets.bound(i,:)<=0) 
+                    % knockdown or irreversible insertion target, negative flux values
+                    bound_i{i,1}     = [0,-targets.bound(i,2)];
+                    bound_i{i,2}     = [0,-targets.bound(i,1)];
+                elseif (targets.bound(i,1)* targets.bound(i,2))<0
+                    % reversible insertion target
+                    bound_i{i,1}     = [0,0];
+                    bound_i{i,2}     = [targets.bound(i,2),-targets.bound(i,1)];
+                end
+            else
+                % irreversible reaction
+                bound_i{i,1}     = targets.bound(i,1);
+                bound_i{i,2}     = targets.bound(i,2);
+            end
+        end
+        targets.bound_i     = bound_i;
+    %     targets.rxnNum      = num2cell(targets.rxnNum);
+    else
+
+        % gene targets
+        B_t     = model_i.B(:,targets.rxnNum);  % mapping matrix for reaction targets only
+
+        % determine direction of reference flux (mapIrr2Rev)
+        B_t_bound   = B_t;
+        for i=1:Nt_tot
+            back_rxn    = model_i.mapIrr2Rev(targets.rxnNum(i),:)==-1;  % position of backwards flux
+            forw_rxn    = model_i.mapIrr2Rev(targets.rxnNum(i),:)==1;  % position of forward flux
+            if any(back_rxn) 
+                % reversible reaction
+                if model.fd_ref(targets.rxnNum(i))<0
+                    B_t_bound(back_rxn,i)     = 1;
+                    B_t_bound(forw_rxn,i)     = 0;
+                else
+                    B_t_bound(back_rxn,i)     = 0;
+                    B_t_bound(forw_rxn,i)     = 1;
+                end
+            else
+                % irreversible reaction
+            end
+        end
+
+        % determine irreversible bounds for insertion targets
+        rxnNum_i                = model_i.rev2irrev(targets.rxnNum);
+        bound_i                 = cell(Nt_tot,2);
+        for i=1:Nt_tot
+            rxnPos              = i;
+            if length(rxnNum_i{rxnPos}) > 1
+                % reversible reaction
+                if ~any(targets.bound(rxnPos,:))
+                    % reaction deletion
+                    bound_i{i,1}     = targets.bound(rxnPos,:);
+                    bound_i{i,2}     = targets.bound(rxnPos,:);
+                elseif all(targets.bound(rxnPos,:)>=0)
+                    % knockdown or irreversible insertion target, positive flux values
+                    bound_i{i,1}     = [targets.bound(rxnPos,1),0];
+                    bound_i{i,2}     = [targets.bound(rxnPos,2),0];
+                elseif all(targets.bound(rxnPos,:)<=0) 
+                    % knockdown or irreversible insertion target, negative flux values
+                    bound_i{i,1}     = [0,-targets.bound(rxnPos,2)];
+                    bound_i{i,2}     = [0,-targets.bound(rxnPos,1)];
+                elseif (targets.bound(rxnPos,1)* targets.bound(rxnPos,2))<0
+                    % reversible insertion target
+                    bound_i{i,1}     = [0,0];
+                    bound_i{i,2}     = [targets.bound(rxnPos,2),-targets.bound(rxnPos,1)];
+                end
+            else
+                % irreversible reaction
+                bound_i{i,1}     = targets.bound(rxnPos,1);
+                bound_i{i,2}     = targets.bound(rxnPos,2);
+            end
+        end
+        targets.bound_i     = bound_i;
+        targets.rxnNum_i    = rxnNum_i;
+
+
+        targets.B_t         = B_t;
+        targets.B_t_bound   = B_t_bound;
+        targets.rev2irrev   = model_i.rev2irrev;
+
+
+    %     % create dependence matrix of gene bounds and irreversible reactions
+    %     % upper bound
+    %     nR_i    = length(model_i.rxns);     % number of irreversible reactions
+    %     
+    % 
+    %     targets.rxnNum_i    = cell(Nt_tot,1);
+    %     bound_i             = cell(Nt_tot,2);
+    %     for i=1:Nt_tot
+    %         rxnNum_i    = model_i.rev2irrev(targets.rxnNum(i));
+    %         numRxns     = length(rxnNum_i);
+    %         for j=1:numRxns
+    %             bound   = [targets.bound{i,1}(j),targets.bound{i,2}(j)];    % load bound of the specific target reaction
+    %             if length(rxnNum_i{j}) > 1
+    %                 % reversible reaction
+    %                 if ~any(bound)
+    %                     bound_i{i,1}        = [bound_i{i,1},bound];
+    %                     bound_i{i,2}        = [bound_i{i,2},bound];
+    %                 elseif all(bound>=0)
+    %                     % knockdown, positive flux
+    %                     bound_i{i,1}        = [bound_i{i,1},bound(1),0];
+    %                     bound_i{i,2}        = [bound_i{i,2},bound(2),0];
+    %                 elseif all(bound<=0)
+    %                     % knockdown, negative flux
+    %                     bound_i{i,1}        = [bound_i{i,1},0,-bound(1)];
+    %                     bound_i{i,2}        = [bound_i{i,2},0,-bound(2)];
+    %                 else
+    %                     warning('Target bounds suggest a reversible reaction')
+    %                 end
+    %             else
+    %                 % irreversible reaction
+    %                 bound_i{i,1}        = [bound_i{i,1},bound(1)];
+    %                 bound_i{i,2}        = [bound_i{i,2},bound(2)];
+    %             end
+    %         end
+    %         targets.rxnNum_i{i}     = [rxnNum_i{:}];
+    %     end 
+    %     targets.bound_i     = bound_i;
+    end
+    
+   
+    % prepare model
+    % set bounds of herterologous reaction to zero
+    model.lb(model.hetRxnNum)     = 0;
+    model.ub(model.hetRxnNum)     = 0;
+    for i=1:length(model_i.hetRxnNum)
+        model_i.lb(model_i.hetRxnNum{i})  = 0;
+        model_i.ub(model_i.hetRxnNum{i})  = 0;
+    end   
+    
+    
+elseif fitFun_type==2
+    % protein allocation model optimization
+    % heterologous reaction insertion not applicable
+    
+    % protein allocation model is naturally irreversible, copy original
+    % model, bounds and target reaction numbers
+    model_i             = model;
+    targets.bound_i     = cell(Nt_tot,2);
+    
+    targets.bound_i(:,1)    = mat2cell(targets.bound,ones(Nt_tot,1),2);
+    targets.bound_i(:,2)    = targets.bound_i(:,1);
+    
+    targets.rxnNum_i    = mat2cell(targets.rxnNum,ones(Nt_tot,1),1);
+      
 end
 
 
-%% prepare model
-% set bounds of herterologous reaction to zero
-model.lb(model.hetRxnNum)     = 0;
-model.ub(model.hetRxnNum)     = 0;
-for i=1:length(model_i.hetRxnNum)
-    model_i.lb(model_i.hetRxnNum{i})  = 0;
-    model_i.ub(model_i.hetRxnNum{i})  = 0;
-end      
 
 
 %% special options for particular fitness function
@@ -310,7 +331,7 @@ switch fitFun_type
             
         fclose(fileID);            
         
-         % set up standard LP
+        % set up standard LP
         [opt_fitFun.gurProb,opt_fitFun.gurProb_1norm,opt_fitFun.gurParams]   = initStructLP(model);
         opt_fitFun.nRxns    = length(model.rxns);   % save number of reactions (for 1-norm minimization)
        
@@ -377,6 +398,11 @@ switch fitFun_type
         % consider minimal allowable growth rate
         opt_fitFun.gurProb.lb(model.bmRxnNum)  = opt_fitFun.minGrowth;
         
+    case 2
+        % protein allocation model optimization
+        
+        % set up standard LP
+        [opt_fitFun.gurProb,~,opt_fitFun.gurParams]   = initStructLP(model);
         
     otherwise
         error('Unknown fitness function')   
@@ -389,6 +415,8 @@ popFit      = zeros(popSize,1);     % fitness for each chromosome
 popFD       = cell(popSize,1);
 popObjVal   = popFD;
 parfor i=1:popSize
+% for i=1:popSize
+
     % choose fitness function
     switch fitFun_type
         case 0
@@ -418,10 +446,16 @@ parfor i=1:popSize
             [popFit(i),popFD{i},popObjVal{i}]    = fitFun_multiObj(model,model_i,act_targets_i,act_targets,...
                                                act_targetBounds_i,act_targetBounds,opt_fitFun);   
             
+        case 2
+            % protein allocation model optimization
+            [act_targets,~,act_targetBounds,~] = evalTargets(pop(i,:),targets);
+            % optimize model
+            [popFit(i),popFD{i}]     = fitFun_PAM(model,act_targets,act_targetBounds,opt_fitFun);
         otherwise
             error('Unknown fitness function')
     end   
 end
+
 
 %% correct fitness to account for the minimization of interventions
 
@@ -447,6 +481,8 @@ if ~isempty(popFit)
             for i=1:length(keySet)
                 chr_map(keySet{i})      = [popFit(i),popObjVal{i}];
             end
+        case 2
+            chr_map     = containers.Map(keySet,popFit);
     end
 else
     chr_map     = containers.Map;

@@ -124,6 +124,8 @@ if opt.fitFun==1 % multiobjective function
             error('Pass weighting factors for each objective function')
         end  
     end
+elseif opt.fitFun==2 % protein allocation model optimization
+    
 end 
 % minimal allowable growth rate
 if ~isfield(opt_fitFun,'minGrowth')
@@ -480,13 +482,15 @@ if redFlag
     [minFlux,maxFlux,~,~] = manualFVA(model);    % flux variability analysis
     blckd_rxns      = find((minFlux==0) & (maxFlux==0));
     % add to non targets
-    nonTargetRed    = unique([nonTargetRed;blckd_rxns]);       
+    nonTargetRed    = unique([nonTargetRed;blckd_rxns]);   
+else
+    nonTargetRed    = [];
 end
 nonTarget   = [nonTarget;nonTargetRed];
 
 
 
-%% Conduct rMMA and specify targets
+%% Specify targets
 
 % exclude heterologous insertion reaction 
 nonTarget   = [nonTarget;model.hetRxnNum];
@@ -533,7 +537,6 @@ if K==1
     
 end
 
-
 %% Build initial population
 c = fix(clock);
 disp([num2str(c(4:end)),': Initialize genetic optimization algorithm ...'])
@@ -574,8 +577,8 @@ end
   
 
 
-
 %% Initialize fitness function and storage
+
 if fitFun_chngd
     % change in fitness function, recalculate fitness for the initial
     % population

@@ -21,7 +21,10 @@ gurProb.A       = sparse(model.S);
 % righthand side of linear constraints                
 gurProb.rhs     = zeros(nMets,1);
 % sense of constraints
-gurProb.sense(1:nMets)  = '=';               
+gurProb.sense   = model.csense;
+gurProb.sense(gurProb.sense=='E')   = '=';
+gurProb.sense(gurProb.sense=='L')   = '<';
+gurProb.sense(gurProb.sense=='G')   = '>';          
 % objective function (biomass formation, set as default)               
 gurProb.obj_BM      = +strcmp(model.rxns,model.bmRxn);
 gurProb.obj         = gurProb.obj_BM;
@@ -30,7 +33,7 @@ gurProb.obj_P       = +strcmp(model.rxns,model.targetRxn);
 % sense of objective function (maximization)
 gurProb.modelsense  = 'max';
 % variable type
-gurProb.vtype(1:nRxns)      = 'C';
+gurProb.vtype(1:nRxns)   = 'C';
 % lower variable bounds
 gurProb.lb      = model.lb;
 % upper variable bounds

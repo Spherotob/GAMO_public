@@ -76,7 +76,11 @@ for i=1:Np
                 % Update container map of fitness values
                 chr_map(keySet{i})      = [popFit(i),popObjVal{i}];                               
                                                
-                                               
+                  
+            case 2
+                % protein allocation model optimization
+                [act_targets,act_targets_i,act_targetBounds,act_targetBounds_i] = evalTargets(pop(i,:),targets);
+                
             otherwise
                 error('Unknown fitness function')
         end 
