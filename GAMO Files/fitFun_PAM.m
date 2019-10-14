@@ -25,8 +25,7 @@ model_m.ub(targets)      = targetBounds(:,2);
 
 %% optimize model (determine mutant substrate uptake)
 [fluxDist,~,~] = determineMutantPhenotype(model,model_m,opt_fitFun.subsGrid,opt_fitFun.initGridNum,...
-                        opt_fitFun.maxOEELimit,opt_fitFun.wildtypeGridSolutions);
-
+                        opt_fitFun.maxOEELimit,opt_fitFun.wildtypeGridSolutions,opt_fitFun.minGrowth);
 
 % check if valid solutions exists
 if fluxDist==-1

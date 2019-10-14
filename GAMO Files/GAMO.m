@@ -302,6 +302,14 @@ else
     nonTarget     = [];
 end
 
+% user defined default solutions
+if isfield(opt,'defaultSolutions')
+    defaultSol    = opt.defaultSolutions;
+else
+    defaultSol    = [];
+end
+
+
 
 % technical
 if isfield(opt,'threads')
@@ -488,7 +496,7 @@ if redFlag
 else
     nonTargetRed    = [];
 end
-nonTarget   = [nonTarget;nonTargetRed];
+nonTarget   = unique([nonTarget;nonTargetRed]);
 
 
 
@@ -545,7 +553,7 @@ disp([num2str(c(4:end)),': Initialize genetic optimization algorithm ...'])
 if ~isfield(prob,'pop') && ~isfield(prob,'enc')
     % initializePopulation
     [pop,pop_Tbin, pop_bin,enc,targets]     = initializePopulation(model,targets,popSize,...
-                                                b,K,K_hri,optFocus,threads,initPopType,opt_ga);
+                                                b,K,K_hri,optFocus,threads,initPopType,defaultSol,opt_ga);
     
     prob.enc    = enc;
     % save initial population
@@ -596,7 +604,7 @@ else
 end
  
 
-
+save TEST_GAMO
 % save for future runs
 prob.model          = model;
 prob.model_i        = model_i;
@@ -675,7 +683,6 @@ pop_sort                        = finalPop.pop(popFit_sort_I,:);
 numIS       = length(popFit_sort);
 res         = [];
 parfor i=1:numIS   
-    
     indv                            = pop_sort(i,:);
     [KO,KD,Gene_KO,Gene_KD,Ins]     = translatePop(model_save,model,indv,optFocus,targets,enc.K,enc.K_hri);
     
@@ -709,7 +716,9 @@ if length(allFit_sort_P)<numBest
     numBest     = length(allFit_sort_P);
 end
 
-parfor i=1:numBest
+for i=1:numBest
+    
+%     indv
 
     indv                            = str2num(allKeys{allFit_sort_P(i)});   % get individual  
     [KO,KD,Gene_KO,Gene_KD,Ins]     = translatePop(model_save,model,indv,optFocus,targets,enc.K,enc.K_hri);
@@ -740,6 +749,7 @@ end
 fluxes      = cell(numBS,1);
 popObjVal   = cell(numBS,i);
 numRxns_orig    = size(model_save.rxns,1);
+
 parfor i=1:numBS
     [~,~,popFD,popObjVal_out] = evalFitness(res_best(i).pop,[],model,model_i,1,targets,fitFun_type,opt_fitFun);
     % decompress results
@@ -783,7 +793,7 @@ for i=1:numIS
 end
 
 % Test combinations of target reactions of the best solutions for fitness
-best_sol    = 10;   % size of best solutions
+best_sol    = threads;   % size of best solutions
 if length(res_best)<best_sol
     best_sol    = length(res_best);
 end
@@ -792,6 +802,7 @@ K_tot       = enc.K_tot;
 K           = enc.K;
 K_hri       = enc.K_hri;
 res_comb    = cell(best_sol,1);
+
 parfor i=1:best_sol
     comb        = [];
     comb.KO     = [];
@@ -799,16 +810,21 @@ parfor i=1:best_sol
     comb.fit    = [];
     c   = 1;    % counter
     for j=1:(K_tot-1)
+        
         % determine insertion targets
         if K_hri>0
             targets_hri     = res_best(i).pop((K+1):K_tot);
         else
             targets_hri  = [];
         end
-        % create combinations of targets
-        pop_comb    = nchoosek(res_best(i).pop,j); 
+        % create combinations of targets        
+        pop_comb    = nchoosek(res_best(i).pop,K_tot-j); 
         targets_h   = targets;  % copy targets structure          
         for l=1:size(pop_comb,1)
+            % limit number of combinations
+            if c>200
+                break;
+            end
 
             indv    = pop_comb(l,:);
             % determine number of insertions targets
@@ -828,7 +844,8 @@ parfor i=1:best_sol
             comb(c).Ins = Ins;
             comb(c).fit = popFit;
             comb(c).pop = pop_comb(l,:);
-            c   = c+1;     
+            c   = c+1;  
+            
         end
     end 
     res_comb{i}     = comb;

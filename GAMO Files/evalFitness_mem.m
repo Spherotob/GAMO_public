@@ -78,10 +78,19 @@ for i=1:Np
                                                
                   
             case 2
-                % protein allocation model optimization
-                [act_targets,act_targets_i,act_targetBounds,act_targetBounds_i] = evalTargets(pop(i,:),targets);
-                % optimize model
-                [popFit(i),popFD{i}]     = fitFun_PAM(model,act_targets,act_targetBounds,opt_fitFun);
+                try
+                    % protein allocation model optimization
+                    [act_targets,~,act_targetBounds,~] = evalTargets(pop(i,:),targets);
+                    % optimize model
+                    [popFit(i),popFD{i}]     = fitFun_PAM(model,act_targets,act_targetBounds,opt_fitFun);
+                
+                    % Update container map of fitness values
+                    chr_map(keySet{i})      = popFit(i);   
+                
+                catch ME
+                    save SAVE_CATCH_evalFitMem
+                    error('Target evaluation failed')
+                end
             otherwise
                 error('Unknown fitness function')
         end 

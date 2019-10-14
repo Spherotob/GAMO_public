@@ -8,6 +8,7 @@ opt             = [];
 
 %%
 % set path for additional files
+
 addpath('GAMO Files')
 addpath('Data Files')            % flux data for reference flux distribution
 addpath('Additional Files')  
@@ -18,11 +19,12 @@ load('C:\Users\altert\Promo\Matlab Code\Protein Allocation\AA independent model\
 model_i_pa.csense   = model_i_pa.csense';
 model   = model_i_pa;
 % change pam parameter
-params.ms_max   = 11.1;
-model   = changePAAModelParameter(model,params);
+params.vs_max   = 18.5;
+model           = changePAAModelParameter(model,params);
 
-model           = changeRxnBounds(model,'EX_glc__D_e_b',11.1,'u');   % activate glucose uptake
-model           = changeRxnBounds(model,'EX_o2_e_b',100,'u');   % activate oxygen uptake
+model           = changeRxnBounds(model,'EX_glc__D_e_b',18.5,'u');   % activate glucose uptake
+model           = changeRxnBounds(model,'EX_o2_e_b',5,'u');   % activate oxygen uptake
+model           = changeRxnBounds(model,'EX_co2_e_b',0,'b');   % disable carbon dioxide uptake
 
 % define target (exchange) reaction, biomass formation reaction and
 % substrate uptake reaction
@@ -30,10 +32,13 @@ model.targetRxn     = 'EX_succ_e_f';
 model.bmRxn         = 'BIOMASS_Ec_iML1515_WT_75p37M';   % E. coli iML1515
 model.subsRxn       = 'EX_glc__D_e_b';
 
+% test model
+sol     = optimizeCbModel(model,'max');
+
 
 % GAMO OPTIONS
 %% general options
-opt.saveFile    = 'iML1515_pa_TEST';  % Filename for saving data
+opt.saveFile    = 'iML1515_pa_succinate_semiaerobic_4KO_BPCY_(NoCO2Uptake)_20190613';  % Filename for saving data
 opt.saveFolder  = 'Results';            % folder for saving results
 opt.threads     = 7;                    % Number of parallel workers
 
@@ -43,16 +48,16 @@ opt.redFlag     = 1;    % (0): no target space reduction; (1): target space redu
 opt.compress    = 0;    % model compression (0): No; (1): active
 
 %% General (crucial) optimization options
-opt.numInt          = 3;        % Maximal number of interventions
-opt.optFocus        = 'gene';   % 'rxns': reaction deletions; 'gene': gene deletions
+opt.numInt          = 4;        % Maximal number of interventions
+opt.optFocus        = 'rxns';   % 'rxns': reaction deletions; 'gene': gene deletions
 
 %% genetic algorithm parameter (crucial)
 opt.memPop          = 1;    % (1): Memorize fitness of each generated chromosome
                             % (0): only final population fitness is passed
                             
 opt.popSize         = 20;   % Population size/Number of chromosomes per generation     
-opt.maxGen          = 5;   % Numberof Gene-Drift-Events
-opt.genSize         = 10;   % Number of generations between two Gene-Flow-Events 
+opt.maxGen          = 20;   % Number of Gene-Drift-Events
+opt.genSize         = 20;   % Number of generations between two Gene-Flow-Events 
 opt.slctRate        = 0.25;  % Selection rate
 opt.mutRate         = 0.05;  % Mutation rate (0-1) related to the whole population and its number of bits
 opt.elite           = 1;    % Number of elite chromosomes which are not to be mutated
@@ -63,6 +68,10 @@ opt.initPopType     = 0;    % Type of initial population
                             % (1): only single intervention mutants 
 
 opt.slctPressure    = 2;    % Selection Pressure for targets at population initilization (1-2)
+
+%% provide default solutions
+
+opt.defaultSolutions    = {{'TRPAS2_b','THD2pp','FADRx'}};
 
 
 %% fitness function options
@@ -76,7 +85,7 @@ opt_fitFun.fitParam        = 0;             % 0: Biomass-Product coupled yield (
 opt_fitFun.minGrowth       = 0.1;   % Assign minimal allowable growth rate for LP objectives (OptKnock etc)
 
 % specify protein allocation options
-opt_fitFun.subsGrid     = 3:0.01:11.1;  % substrate uptake rate grid
+opt_fitFun.subsGrid     = 3:0.01:params.vs_max;  % substrate uptake rate grid
 opt_fitFun.initGridNum  = 30;   % number of initial grid size
 opt_fitFun.maxOEELimit  = 3.6;  % maximally allowable maxmimal enzyme overexpression capacity [mg/g/h]
 % determine wild-type solutions for substrate uptake grid

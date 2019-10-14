@@ -1,4 +1,4 @@
-function [pop,pop_Tbin, pop_bin,enc,targets] = initializePopulation(model,targets,popSize,b,K,K_hri,optFocus,threads,initPopType,opt_ga)
+function [pop,pop_Tbin, pop_bin,enc,targets] = initializePopulation(model,targets,popSize,b,K,K_hri,optFocus,threads,initPopType,defaultSol,opt_ga)
 
 % Create initial population (generation) 
 
@@ -213,13 +213,60 @@ end
 pop     = zeros(Np,K_tot);
 pop_Tbin = zeros(Np,Nt+Nt_hri);     % binary representation of the population
 
+
+% consider solutions from user input 
+numDefaultSol       = length(defaultSol);
+if numDefaultSol>Np
+    % too many default solutions, erase
+    numDefaultSol   = Np;
+end
+
+c  = 0;     % counter for valid solutions
+for i=1:numDefaultSol
+    % check length of default solution
+    if length(defaultSol{i})>K_tot
+        warning('Size of default solution is too high! Will be dismissed')
+    else
+        c   = c+1;
+        lenDefaultSol   = length(defaultSol{i});
+        for j=1:lenDefaultSol
+            % find reaction in the model
+            defRxnNum   = find(strcmp(model.rxns,defaultSol{i}{j}));
+            if isempty(defRxnNum)
+                warning(['Reaction: ',defaultSol{i}{j},' not found in model. Random reaction selection.'])
+                % reaction not found, choose random solution instead
+                pop(c,j)    = round(rand(1)*Nt);
+            else
+                % translate reaction position to population
+                defaultRxnPopNum    = find(targets.rxnNum==defRxnNum);
+                if isempty(defaultRxnPopNum)
+                    % reaction is no target, randomly select target
+                    pop(c,j)    = round(rand(1)*Nt);
+                else
+                    pop(c,j)    = defaultRxnPopNum;
+                end
+            end
+        end
+        % fill up solution with default reactions
+        numFillSol  = K_tot-lenDefaultSol;
+        if numFillSol>0
+            for j=1:numFillSol
+                pop(c,j+lenDefaultSol)    = pop(c,round(rand(1)*lenDefaultSol));
+            end
+        end
+    end
+end
+% update number of default solutions
+numDefaultSol   = c;
+
+
 blank               = zeros(1,Nt);  % blank binary chromosome
 sampleRate_save     = zeros(Np,1);
 
 switch initPopType
     case 0
         % randomly select interventions
-        for i=1:Np
+        for i=(numDefaultSol+1):Np
             % sample until a valid chromosome is found
             sample      = 1;
             sampleRate  = 1;
@@ -309,7 +356,7 @@ switch initPopType
         % randomized routine
         randTargetNum   = (rand(Np,1).*(Nt-1))+1;
         randInsertNum   = (rand(Np,1).*(Nt_hri-1))+1+Nt;
-        for i=1:Np
+        for i=(numDefaultSol+1):Np
             % add deletions
             for j=1:K
                 pop(i,j)                        = randTargetNum(i);    % write population file
@@ -331,6 +378,9 @@ end
 % chosse sufficient number of bits to minimize bias during mutations
 numBits     = round(log(discrFac*Nt)/log(2));           % number of bits
 encodeVec   = ceil([1:(2^numBits)]./((2^numBits)/Nt));  % (d)encoding vector matching decimal to an intervention
+% account for rounding errors, erase out-of-bound target indices
+encodeVec(encodeVec>Nt)     = Nt;
+
 % save start position of genes in binary population format
 posGene     = 1:numBits:((numBits*K)-numBits+1);
 
