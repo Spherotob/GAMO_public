@@ -39,11 +39,39 @@ if isfield(model,'bmRxn')
 end
 if isfield(model,'subsRxn')
     % substrate uptake reaction points to extracellular space
-    model_i.subsRxn   = [model.subsRxn,'_b'];
+    ub_subs     = model.ub(strcmp(model.rxns,model.subsRxn));
+    lb_subs     = model.lb(strcmp(model.rxns,model.subsRxn));
+    if (lb_subs<0) && (ub_subs<=0)
+        % pure backward reaction
+        warning('Consider to make substrate uptake reaction reversible to avoid problems with the calculation of the fitness!')
+        model_i.subsRxn   = [model.subsRxn,'_r'];
+    elseif (lb_subs<0) && (ub_subs>0)
+        % reversible reaction, uptake is represented by a negative reaction rate
+        model_i.subsRxn   = [model.subsRxn,'_b'];
+    elseif (lb_subs>=0) && (ub_subs>0)
+        % RARE CASE, uptake reaction is irreversible and is represented by
+        % a forward flux
+        warning('Substrate uptake reaction bounds are positive! Generally, uptake fluxes should be represented by a backward reaction')
+        model_i.subsRxn   = model.subsRxn;
+    end
     
 end
 if isfield(model,'targetRxn')
-    model_i.targetRxn   = model.targetRxn;
+    ub_target     = model.ub(strcmp(model.rxns,model.targetRxn));
+    lb_target     = model.lb(strcmp(model.rxns,model.targetRxn));
+    if (lb_target<0) && (ub_target>0)
+        % target reaction is reversible, treat forwards reaction as the
+        % main objective
+        model_i.targetRxn   = [model.targetRxn,'_f'];
+    elseif (lb_target>=0) && (ub_target>0)
+        % standard irreversible reaction
+        model_i.targetRxn   = model.targetRxn;
+    elseif (lb_target<0) && (ub_target<=0)
+        % RARE CASE, target reaction backward flux is the objective
+        warning('Target reaction bounds are negative! Generally, target fluxes should be represented by a forward reaction')
+
+        model_i.targetRxn   = [model.targetRxn,'_r'];
+    end
 end
 
 end
