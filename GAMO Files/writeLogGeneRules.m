@@ -91,17 +91,21 @@ for i=1:length(targetRxns)
                 % set gene variable
                 cb          = grRule{j}==')';   % get position of closing brackets
                 geneID      = grRule{j}(~cb);   % isolate gene ID
-                if n==2
-                    % search for knockdown gene target
-                    geneID  = [geneID,'KD'];
-                end
-                genePos         = find(strcmp(targetGenes,geneID));     % position of gene in target vector
-                if isempty(genePos)
-                    % gene not in target space so always functioning
-                    log_grRule_s  = [log_grRule_s,'1'];  
-                else
-                    log_grRule_s    = [log_grRule_s,['gene(',num2str(genePos),')']];
-                    genes_rule      = [genes_rule,genePos];
+                
+                if ~isempty(geneID)
+                    % if only brackets were found skip gene search
+                    if n==2
+                        % search for knockdown gene target
+                        geneID  = [geneID,'KD'];
+                    end
+                    genePos         = find(strcmp(targetGenes,geneID));     % position of gene in target vector
+                    if isempty(genePos)
+                        % gene not in target space so always functioning
+                        log_grRule_s  = [log_grRule_s,'1'];  
+                    else
+                        log_grRule_s    = [log_grRule_s,['gene(',num2str(genePos),')']];
+                        genes_rule      = [genes_rule,genePos];
+                    end
                 end
                   
                 % set closing bracket
