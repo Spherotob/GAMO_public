@@ -856,7 +856,7 @@ if ~isempty(saveFile)
     if isempty(saveFolder)
         save(saveFile,'results','prob')
     else
-        if ~isdir(saveFolder)
+        if ~isfolder(saveFolder)
             mkdir(saveFolder)
         end
         save([saveFolder,'/',saveFile],'results','prob')
