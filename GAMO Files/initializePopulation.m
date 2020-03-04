@@ -216,10 +216,79 @@ pop_Tbin = zeros(Np,Nt+Nt_hri);     % binary representation of the population
 blank               = zeros(1,Nt);  % blank binary chromosome
 sampleRate_save     = zeros(Np,1);
 
+% consider user-defined default targets
+numDefaultSolutions     = 0;    % total number of default solutions
+if ~isempty(opt_ga.defaultTargets)
+    % check format of default targets field
+    if iscell(opt_ga.defaultTargets)
+        % valid cell array containing gene or reaction identifier
+        for i=1:length(opt_ga.defaultTargets)
+            defaultSolution = [];  % default encoded solution 
+            % each entry is a unique solution
+            defaultSolutionIDs     = opt_ga.defaultTargets{i};
+            for j=1:length(defaultSolutionIDs)
+                % identify target type
+                if any(strcmp(model.genes,defaultSolutionIDs{j}))
+                    % gene target
+                    % get position in target vector
+                    if strcmp(optFocus,'gene')            
+                        defaultSolution   = [defaultSolution;find(ismember(targets.geneNum,...
+                            find(strcmp(model.genes,defaultSolutionIDs{j}))))];
+                    else
+                        % match reaction to gene(s)
+                        rxnPos  = find(model.rxnGeneMat(:,...
+                            find(strcmp(model.genes,defaultSolutionIDs{j}))));
+                        defaultSolution     = [defaultSolution;...
+                            find(ismember(targets.rxnNum,rxnPos))];
+                    end
+                elseif any(strcmp(model.rxns,defaultSolutionIDs{j}))
+                    % reaction target
+                    % get position in target vector
+                    if strcmp(optFocus,'rxns')            
+                        defaultSolution   = [defaultSolution;find(ismember(targets.rxnNum,...
+                            find(strcmp(model.rxns,defaultSolutionIDs{j}))))];
+                    else
+                        % match gene to reaction(s)
+                        genePos  = find(model.rxnGeneMat(...
+                            find(strcmp(model.rxns,defaultSolutionIDs{j})),:));
+                        defaultSolution     = [defaultSolution;...
+                            find(ismember(targets.geneNum,genePos))];
+                    end                  
+                end
+            end
+            defaultSolution     = unique(defaultSolution);
+            % check length of default solution
+            lenDefaultSolution  = length(defaultSolution);
+            if lenDefaultSolution<=K && ~isempty(defaultSolution)
+                numDefaultSolutions     = numDefaultSolutions+1;
+                pop(numDefaultSolutions,1:lenDefaultSolution)    = defaultSolution';
+                % fill remaining empty target spaces
+                for k=(lenDefaultSolution+1):K
+                    % pick a random target of the default solution
+                    pop(numDefaultSolutions,k)    = pop(i,randperm(lenDefaultSolution,1));
+                end
+                
+            else
+                if strcmp(optFocus,'gene')  
+                    warning(['Default solution ',num2str(i),...
+                        ': Translates to more gene targets than allowed (or none)']) 
+                else
+                    warning(['Default solution ',num2str(i),...
+                        ': Translates to more reaction targets than allowed (or none)'])   
+                end
+            end
+        end
+        
+        
+    else
+        warning('Default targets field is not in the correct format. Provide a cell array containing gene or reaction identifiers!');
+    end  
+end
+
 switch initPopType
     case 0
         % randomly select interventions
-        for i=1:Np
+        for i=(numDefaultSolutions+1):Np
             % sample until a valid chromosome is found
             sample      = 1;
             sampleRate  = 1;
@@ -309,7 +378,7 @@ switch initPopType
         % randomized routine
         randTargetNum   = (rand(Np,1).*(Nt-1))+1;
         randInsertNum   = (rand(Np,1).*(Nt_hri-1))+1+Nt;
-        for i=1:Np
+        for i=(numDefaultSolutions+1):Np
             % add deletions
             for j=1:K
                 pop(i,j)                        = randTargetNum(i);    % write population file

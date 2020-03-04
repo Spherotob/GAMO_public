@@ -196,6 +196,11 @@ if isfield(opt,'typeInt')
 else
     typeInt       = 0; 
 end
+if isfield(opt,'defaultTargets')
+    opt_ga.defaultTargets   = opt.defaultTargets;
+else
+    opt_ga.defaultTargets   = [];
+end
 
 % genetic algorithm properties
 if isfield(opt,'memPop')

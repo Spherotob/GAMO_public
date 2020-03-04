@@ -55,8 +55,8 @@ opt.memPop          = 1;    % (1): Memorize fitness of each generated chromosome
                             % (0): only final population fitness is passed
                             
 opt.popSize         = 20;   % Population size/Number of chromosomes per generation     
-opt.maxGen          = 2;   % Numberof Gene-Drift-Events
-opt.genSize         = 2;   % Number of generations between two Gene-Flow-Events 
+opt.maxGen          = 5;   % Numberof Gene-Drift-Events
+opt.genSize         = 5;   % Number of generations between two Gene-Flow-Events 
 opt.slctRate        = 0.25;  % Selection rate
 opt.mutRate         = 0.05;  % Mutation rate (0-1) related to the whole population and its number of bits
 opt.elite           = 1;    % Number of elite chromosomes which are not to be mutated
@@ -70,7 +70,7 @@ opt.slctPressure    = 2;    % Selection Pressure for targets at population initi
 
 
 %% fitness function options
-opt.fitFun                 = 1;    % Choose fitness function (0): MiMBL; (1): Multiobjective
+opt.fitFun                 = 0;    % Choose fitness function (0): MiMBL; (1): Multiobjective
 % (G):  gcOpt (4)
 % (R):  RobustKnock (3)
 % (O):  Optknock (2)   
@@ -98,6 +98,13 @@ opt_fitFun.excl_rxns    = unique(excl_rxns);
 
 %% exclude reactions from target space
 opt.nonTarget   = {};   % manually specify reaction identifiers of reactions not to be targeted
+
+%% provide an initial, default solution
+% gene and reaction identfier may be provided with the cell array
+% each line within the cell array is one default solution
+opt.defaultTargets  = {{'b1241','b0116'};...
+                        {'PGI','PFL','TALA','TKT1'};...
+                        {'PGI','PFL','b1241'}};
 
 
 % ADDITIONAL FEATURES
