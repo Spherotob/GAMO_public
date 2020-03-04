@@ -468,7 +468,7 @@ end
 
     
 %% reduce target space
-if redFlag
+if redFlag && ~isfield(prob,'targets')
     c = fix(clock);
     disp([num2str(c(4:end)),': Basic reduction of target space ...'])
 

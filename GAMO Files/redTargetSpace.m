@@ -6,7 +6,16 @@ function [noTarget] = redTargetSpace(model, noTarget, modelType)
 % modelType:          Type of metabolic model concerning identifier standards
 % coFacNum:           metabolite numbers of cofactors, energy equivalents etc
 
-
+%% define subSystems irrelevant as knockout targets
+nonTargetSubsystems = {'Cell Envelope Biosynthesis',...
+                        'Transport',...
+                        'transport',...
+                        'Membrane Lipid Metabolism',...
+                        'Murein Biosynthesis',...
+                        'tRNA Charging',...
+                        'Glycerophospholipid Metabolism'};
+                        
+%%
 switch modelType
     case 0  % Bigg identifiers (like iAF1260)
         
@@ -17,17 +26,34 @@ switch modelType
         noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'transport')))))];  
         noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.rxnNames,'spontaneous')))))]; 
         
+
         % Exclude reactions belonging to a certain subsystem
         if isfield(model,'subSystems')
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Cell Envelope Biosynthesis')))))];
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Transport')))))];
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'transport')))))];
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Membrane Lipid Metabolism')))))];
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Murein Biosynthesis')))))];
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'tRNA Charging')))))];
-            noTarget = [noTarget; find(not(cellfun('isempty',(strfind(model.subSystems,'Glycerophospholipid Metabolism')))))];
-        end
-        
+            for i=1:length(model.subSystems)
+                % identify data type
+                if ischar(model.subSystems{i})
+                    for t=1:length(nonTargetSubsystems)
+                        if ~isempty(strfind(model.subSystems{i},nonTargetSubsystems{t}))
+                            % exclude reaction
+                            noTarget    = [noTarget;i];
+                            break;
+                        end
+                    end
+
+
+                elseif iscell(model.subSystems{i})           
+                    for t=1:length(nonTargetSubsystems)
+                        if any(not(cellfun('isempty',(strfind(model.subSystems{i},nonTargetSubsystems{t})))))
+                            % exclude reaction
+                            noTarget    = [noTarget;i];
+                            break;
+                        end
+                    end
+                end
+            end
+        end 
+
+        % only consider gene related targets
         % exclude reactions that are not related to a gene
         if isfield(model,'grRules')
             geneRel     = cellfun('isempty',model.grRules);
@@ -35,44 +61,8 @@ switch modelType
                 noTarget    = [noTarget; find(geneRel)];
             end
         end
-        
-%         % exclude reactions that act on metabolite with more then 7
-%         % carbons (if sepc
-% %         tar     = [];
-%         if isfield(model,'metFormulas')
-%             isMetFormulas   = not(cellfun('isempty',model.metNames));
-%             if any(isMetFormulas)
-%                 for i=1:length(isMetFormulas)
-%                     if isMetFormulas(i)
-%                         met     = model.metNames{i};
-%                         posC     = strfind(met,'C');
-%                         if ~isempty(posC)
-%                             for k=1:length(posC)
-%                                 % determine number after a 'C'
-%                                 for j=(posC(k)+1):length(met)
-%                                     if isempty(sscanf(met(j),'%g'))
-%                                         % break if character is encountered
-%                                         posNum  = j-1;
-%                                         break;
-%                                     end
-%                                 end
-%                                 if posNum ~= posC(k)
-%                                     num     = str2double(met((posC(k)+1):posNum));
-%                                     if num >= 7
-%                                         % determine related reaction of the metabolite
-% %                                         tar     = [tar; i, num];
-%                                         noTarget    = [noTarget; find(model.S(i,:))'];
-%                                     end
-%                                 end
-%                             end
-%                         end
-%                     end
-%                 end
-%             end
-%         end
-                
-            
-        
+ 
+     
         
 end
         
