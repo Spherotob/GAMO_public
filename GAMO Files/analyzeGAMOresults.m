@@ -1,4 +1,4 @@
-function analyzeGAMOresults(model,results_file,target,varargin)
+function res = analyzeGAMOresults(model,results_file,target,varargin)
 % Analyze GAMO results and extract relevant information from the simulated
 % intervention strategies
 %
@@ -131,9 +131,17 @@ end
      end
  end
     
+
 for i=1:length(target_names)
     target_names{i}   = [target_names{i}(1:2),'\',target_names{i}(3:end)];
 end
+
+% return data
+res = [];
+res.meanFitness_targets     = fitMean_gene_del_sort(1:numRelTarget);
+res.occurence_targets       = gene_del_count_sort_norm(1:numRelTarget);
+res.targetNames             = target_names; 
+ 
 
 
 if plotVar
