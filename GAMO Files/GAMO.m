@@ -330,14 +330,10 @@ end
 addpath(opt_ga.AddFilesDir)
 
 % Rescue Folder for saving files
-if exist([homeDir,slash,'Rescue'],'dir')~=7
-    mkdir([homeDir,slash,'Rescue'])
+opt_ga.rescueDir = [homeDir,slash,'Rescue',slash];
+if exist(opt_ga.rescueDir,'dir')~=7
+    mkdir(opt_ga.rescueDir)
 end
-
-
-%% Re-load optimization problem
-
-
 
 
 %% General parameter
@@ -605,7 +601,7 @@ prob.popFit_init    = popFit;
 prob.popObjFit_init = popFitObj;
 
 % save progress
-save('Rescue\GAMO_PreGA_SaveFile')
+save([opt_ga.rescueDir, 'GAMO_PreGA_SaveFile'])
 
 %% Genetic algorithm
 c = fix(clock);
@@ -644,7 +640,7 @@ end
 prob.totalData      = totalData;
 
 % save progress
-save('Rescue\GAMO_Final_SaveFile')
+save([opt_ga.rescueDir, 'GAMO_Final_SaveFile'])
 
 %% Postprocess results
 c = fix(clock);

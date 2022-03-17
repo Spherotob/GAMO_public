@@ -296,11 +296,9 @@ while (genNum<=maxGen) && genFlag
     fprintf([' completed (best fitness: ',num2str(max(popFit)),')\n']);
     
     genNum  = genNum+1;
-    
-    % Dummy save select
-%     save('Rescue\GAMO_SaveFile','pop_gen_tot','popFit_gen_tot','pop','pop_Tbin','pop_bin','popFit')
-    % Dummy save all
-    save('Rescue\GAMO_SaveFile_GA') 
+
+    % save current workspace for debugging purposes
+    save([opt_ga.rescueDir, 'GAMO_SaveFile_GA']) 
     
     % clear space and reallocate variables
     clearvars chr_map_merge pop_tot
