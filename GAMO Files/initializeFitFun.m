@@ -295,16 +295,17 @@ switch fitFun_type
         fprintf(fileID,['%% Calculate total fitness\n',...
                         'objVal_t = objVal;\n',...
                         'objVal_t(objVal==-1 | isnan(objVal)) = 0;\n',...
-                        'fitVal = (objVal_t(',num2str(opt_fitFun.leadObj),')',...
+                        'fitVal = ((objVal_t(',num2str(opt_fitFun.leadObj),')',...
                          '*',num2str(opt_fitFun.weighting(opt_fitFun.leadObj)),')']);
         if isempty(eval_Obj)
-            fprintf(fileID,';\n');
+            fprintf(fileID,[')*(objVal_t(',num2str(opt_fitFun.leadObj),')~=0);\n']); % if lead objective is zero then the total fitness is zero
         else
             for i=1:length(eval_Obj)
                 fprintf(fileID,['+(objVal_t(',num2str(eval_Obj(i)),')']);
                 fprintf(fileID,['*',num2str(opt_fitFun.weighting(eval_Obj(i))),')']);
             end
-            fprintf(fileID,';\n');
+%             fprintf(fileID,';\n');
+            fprintf(fileID,[')*(objVal_t(',num2str(opt_fitFun.leadObj),')~=0);\n']); % if lead objective is zero then the total fitness is zero
         end
         fprintf(fileID,[ 'fluxDist = fluxDist{',num2str(opt_fitFun.leadObj),'};\n','end']);
             
